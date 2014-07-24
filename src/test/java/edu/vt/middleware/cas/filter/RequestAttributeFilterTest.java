@@ -6,7 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import org.jasig.cas.client.authentication.AttributePrincipalImpl;
@@ -73,22 +74,24 @@ public class RequestAttributeFilterTest {
     final Assertion testAssertion = new AssertionImpl(new AttributePrincipalImpl("bob", attributes));
 
     // Mock request
-    final HttpServletRequest mockRequest = mock(HttpServletRequest.class);
+    final ConfigurableHeaderRequest mockRequest = mock(ConfigurableHeaderRequest.class);
     when(mockRequest.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(testAssertion);
-    final Map<String, Object> actual = new HashMap<String, Object>();
+
+    // Mock filter chain containing assertions
+    final FilterChain mockChain = mock(FilterChain.class);
     doAnswer(new Answer() {
       @Override
       public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
         final Object[] args = invocationOnMock.getArguments();
-        actual.put(args[0].toString(), args[1]);
+        assertTrue(args[0] instanceof ConfigurableHeaderRequest);
+        final ConfigurableHeaderRequest request = (ConfigurableHeaderRequest) args[0];
+        assertEquals("123", request.getHeader("UNIQUE_ID"));
+        assertEquals("bob@vt.edu", request.getHeader("REMOTE_USER"));
+        assertEquals("uid=123,ou=people,dc=vt,dc=edu", request.getHeader("DISTINGUISHED_NAME"));
         return null;
       }
-    }).when(mockRequest).setAttribute(anyString(), anyObject());
+    }).when(mockChain).doFilter(any(ServletRequest.class), any(ServletResponse.class));
 
-    filter.doFilter(mockRequest, mock(HttpServletResponse.class), mock(FilterChain.class));
-
-    assertEquals("123", actual.get("UNIQUE_ID"));
-    assertEquals("bob@vt.edu", actual.get("REMOTE_USER"));
-    assertEquals("uid=123,ou=people,dc=vt,dc=edu", actual.get("DISTINGUISHED_NAME"));
+    filter.doFilter(mockRequest, mock(HttpServletResponse.class), mockChain);
   }
 }

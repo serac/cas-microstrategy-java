@@ -15,7 +15,7 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.validation.Assertion;
 
 /**
- * Servlet filter that sets request attributes based on prinicpal attributes found in the CAS assertion.
+ * Servlet filter that sets request headers based on prinicpal attributes found in the CAS assertion.
  * The filter accepts the following initialization parameters.
  *
  * <p>
@@ -96,19 +96,21 @@ public class RequestAttributeFilter implements Filter {
       final ServletResponse servletResponse,
       final FilterChain filterChain) throws IOException, ServletException {
 
-    final HttpServletRequest request = (HttpServletRequest) servletRequest;
+    HttpServletRequest request = (HttpServletRequest) servletRequest;
     Assertion assertion = (Assertion) request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
     if (assertion == null) {
       // Try session
       assertion = (Assertion) request.getSession(false).getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
     }
     if (assertion != null) {
+      final ConfigurableHeaderRequest wrappedRequest = new ConfigurableHeaderRequest(request);
       int i = 0;
       for (String attr : requestAttributes) {
-        request.setAttribute(attr, assertionAttributes[i++].evaluate(assertion));
+        wrappedRequest.addHeader(attr, assertionAttributes[i++].evaluate(assertion).toString());
       }
+      request = wrappedRequest;
     }
-    filterChain.doFilter(servletRequest, servletResponse);
+    filterChain.doFilter(request, servletResponse);
   }
 
 
