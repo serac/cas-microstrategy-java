@@ -1,8 +1,9 @@
 # CAS Microstrategy Integration for Java
 
-This project provides a servlet filter for authorization, _RequestAttributeFilter_, that complements Java CAS Client
-authentication filters. The basic approach is to define attributes to extract from the CAS assertion that are converted
-to HTTP request headers.
+This project provides a servlet filter for authorization, _RequestAttributeFilter_, that complements
+[Java CAS Client](https://github.com/apereo/java-cas-client) authentication filters. The basic approach is to define
+attributes to extract from the CAS assertion that are converted to HTTP request headers. The filter supports a simple
+syntax for decorating simple attribute values; for example, to append a domain name to created a scoped username.
 
 It is vitally important that some upstream component (e.g. prior servlet filter, reverse  proxy)
 **strips all client-provided headers set by _RequestAttributeFilter_** this from the request.
