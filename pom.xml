@@ -4,7 +4,7 @@
 
   <groupId>edu.vt.middleware</groupId>
   <artifactId>cas-microstrategy-integration</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <name>cas-microstrategy-integration</name>
